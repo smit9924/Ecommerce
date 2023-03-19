@@ -89,7 +89,7 @@ class Delete(View):
 
 # Class to handle update operation
 class Update(View):
-    def get(self, request, *args, **kwargs):
+    def POST(self, request, *args, **kwargs):
         dataObj = itemData.objects.filter(id=request.GET.get('id'))
         try: 
             if id == None:
@@ -112,10 +112,64 @@ class Update(View):
         '''
         params:
                 dataObj: Object of database
-                request: object of GET request
+                request: object of POST request
         output: 
                 Boolean
         '''
+# Class to handle insert operation 
+class Insert(View):
+    def post(self, request, *args, **kwargs):
+        dataObj = itemData.objects.filter(id=request.POST.get('id'))
+        try:
+            if dataObj == None:
+                raise Exception("Bad request! Invalid ID!!!")
+            else:
+                self.updateData(self, dataObj, request)
+                response = {
+                    "success": True
+                }
+        except Exception:
+            response = {
+                "success":False,
+                "error": Exception 
+            }
+
+        return JsonResponse(response)
+    
+    def filenameGenerator(self):
+        '''
+        input: this function take no input
+        output: unique string which never collied with each other
+        '''
+        cdt = datetime.now()
+        return (str(cdt.year) + str(cdt.month) + str(cdt.day) + str(cdt.hour) + str(cdt.minute) + str(cdt.second))
+
+    def uploadImage(self, request):
+        '''
+        input: 
+                request: Object of request
+        output: 
+                return PUBLIC URL of firebase cloud where image is stored
+        '''
+        bucket = storage.bucket()
+        blob = bucket.blob(self.filenameGenerator())
+        blob.upload_from_string(base64.b64decode(base64.b64encode(request.FILES.get("image").read())), content_type='image/png')
+        blob.make_public()
+        return blob.public_url
+    
+    def updateData(self, dataObj, request):
+        '''
+        params: 
+                dataObj: Object of database
+                request : object of request
+        output: 
+                boolean(True or False)
+        '''
+        dataObj.name = request.POST.get("name")
+        dataObj.category = request.POST.get("category")
+        dataObj.brand = request.POST.get("brand")
+        dataObj.image = self.uploadImage(request)
+        dataObj.save()
 
 
 # Class to render Display Data Pag
