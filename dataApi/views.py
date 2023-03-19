@@ -14,8 +14,18 @@ firebase_admin.initialize_app(cred, {'storageBucket': 'internshipecommerce-1f7ed
 # Class to handle insert operation 
 class Insert(View):
     def post(self, request, *args, **kwargs):
-        self.insertData(self, request)
-        return JsonResponse({"success":"True"})
+        try:
+            self.insertData(self, request)
+            response = {
+                "success": True
+            }
+        except Exception:
+            response = {
+                "success":False,
+                "error": Exception 
+            }
+
+        return JsonResponse(response)
     
     def filenameGenerator(self):
         '''
@@ -27,8 +37,10 @@ class Insert(View):
 
     def uploadImage(self, request):
         '''
-        input: request: Object or request
-        output: return public url of firebase cloud where image is stored
+        input: 
+                request: Object of request
+        output: 
+                return PUBLIC URL of firebase cloud where image is stored
         '''
         bucket = storage.bucket()
         blob = bucket.blob(self.filenameGenerator())
@@ -38,9 +50,11 @@ class Insert(View):
     
     def insertData(self, request, imgUrl):
         '''
-        input: request : object of request
-               imgUrl: url of firebase storage where image is stored
-        output: boolean(True or False)
+        params: 
+                request : object of request
+                imgUrl: url of firebase storage where image is stored
+        output: 
+                boolean(True or False)
         '''
         dataObj = itemData()
         dataObj.name = request.POST.get("name")
@@ -52,16 +66,56 @@ class Insert(View):
 # Class to handle delete operation
 class Delete(View):
     def get(self, request, *args, **kwargs):
-        id = request.GET.get("id")
+        try:
+            Obj = itemData.objects.filter(id = request.GET.get('id'))
+
+            if Obj == None:
+                raise Exception("Bad request! Invalid ID!")
+            else:
+                bucket = storage.bucket()
+                blob = bucket.blob(Obj.image)
+                blob.delete
+                response = {
+                    "success":True
+                }
+        except Exception:
+            response = {
+                "success": False,
+                "error": Exception
+            }
+        
+        return JsonResponse(response)
+
 
 # Class to handle update operation
 class Update(View):
     def get(self, request, *args, **kwargs):
-        id = request.GET.get("id")
-        name = request.GET.get("name")
-        category = request.GET.get("category")
-        brand = request.GET.get("brand")
+        dataObj = itemData.objects.filter(id=request.GET.get('id'))
+        try: 
+            if id == None:
+                raise Exception("Bad request! Invalid ID!")
+            else:
+                self.updateValues(dataObj, request)
+                response = {
+                    "success": True
+                }
 
+        except Exception:
+            response = {
+                "success":False,
+                "error": Exception
+            }
+        
+        return JsonResponse(response)
+
+    def updateValues(self, dataObj, request):
+        '''
+        params:
+                dataObj: Object of database
+                request: object of GET request
+        output: 
+                Boolean
+        '''
 
 
 # Class to render Display Data Page
