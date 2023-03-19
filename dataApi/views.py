@@ -118,7 +118,7 @@ class Update(View):
         '''
 
 
-# Class to render Display Data Page
+# Class to render Display Data Pag
 class displayData(View):
     template_name = 'dataApi/displayData.html'
 
