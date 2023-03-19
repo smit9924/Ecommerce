@@ -127,7 +127,7 @@ class displayData(View):
     
 # Class to render Insert Data Page
 class inserPage(View):
-    template_name = 'dataApi/insert.html'
+    template_name = 'dataApi/Insert.html'
 
     def get(self, request):
         return render(request, self.template_name)
