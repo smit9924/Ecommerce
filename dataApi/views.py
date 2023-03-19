@@ -14,33 +14,40 @@ firebase_admin.initialize_app(cred, {'storageBucket': 'internshipecommerce-1f7ed
 # Class to handle insert operation 
 class Insert(View):
     def post(self, request, *args, **kwargs):
+        self.insertData(self, request)
+        return JsonResponse({"success":"True"})
+    
+    def filenameGenerator(self):
+        '''
+        input: this function take no input
+        output: unique string which never collied with each other
+        '''
+        cdt = datetime.now()
+        return (str(cdt.year) + str(cdt.month) + str(cdt.day) + str(cdt.hour) + str(cdt.minute) + str(cdt.second))
 
-        # Uploading image to the firebase cloud storage
+    def uploadImage(self, request):
+        '''
+        input: request: Object or request
+        output: return public url of firebase cloud where image is stored
+        '''
         bucket = storage.bucket()
         blob = bucket.blob(self.filenameGenerator())
         blob.upload_from_string(base64.b64decode(base64.b64encode(request.FILES.get("image").read())), content_type='image/png')
         blob.make_public()
-
-        # Getting values from form
-        name = request.POST.get("name")
-        category = request.POST.get("category")
-        brand = request.POST.get("brand")
-        image_url = blob.public_url # url where image is stored
-
-        # store data into database
-        dataObj = itemData()
-        dataObj.name = name
-        dataObj.category = category
-        dataObj.brand = brand
-        dataObj.image = image_url
-        dataObj.save()
-
-
-        return JsonResponse({"success":"True"})
+        return blob.public_url
     
-    def filenameGenerator(self):
-        cdt = datetime.now()
-        return (str(cdt.year) + str(cdt.month) + str(cdt.day) + str(cdt.hour) + str(cdt.minute) + str(cdt.second))
+    def insertData(self, request, imgUrl):
+        '''
+        input: request : object of request
+               imgUrl: url of firebase storage where image is stored
+        output: boolean(True or False)
+        '''
+        dataObj = itemData()
+        dataObj.name = request.POST.get("name")
+        dataObj.category = request.POST.get("category")
+        dataObj.brand = request.POST.get("brand")
+        dataObj.image = self.uploadImage(request)
+        dataObj.save()
 
 # Class to handle delete operation
 class Delete(View):
@@ -51,10 +58,10 @@ class Delete(View):
 class Update(View):
     def get(self, request, *args, **kwargs):
         id = request.GET.get("id")
-        id = request.GET.get("name")
-        id = request.GET.get("category")
-        id = request.GET.get("brand")
-        id = request.GET.get("image")
+        name = request.GET.get("name")
+        category = request.GET.get("category")
+        brand = request.GET.get("brand")
+
 
 
 # Class to render Display Data Page
