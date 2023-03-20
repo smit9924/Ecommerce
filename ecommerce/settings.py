@@ -11,7 +11,7 @@ SECRET_KEY = 'django-insecure--&ys@c@$4s+9ev2q^u&-8x-gj&--)r3(n_1fcxjh6qz&^eq%(!
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://ecommerce.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://ecommerce.up.railway.app', 'https://www.thunderclient.com']
 
 # Application definition
 
@@ -105,11 +105,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATIC_ROOT =os.path.join(BASE_DIR, 'staticfile')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# STATIC_ROOT =os.path.join(BASE_DIR, 'staticfile')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

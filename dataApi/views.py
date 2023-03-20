@@ -13,25 +13,27 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 firebase_admin.initialize_app(cred, {'storageBucket': 'internshipecommerce-1f7ed.appspot.com'}) 
 
 # Class to handle insert operation 
-'''
-Name: Insert
-function: To insert data into database
-dependencies: 
-            firebase_admin
-            base64
-            datetime
-            itamData
-params: 
-        name
-        brand
-        category
-        image
-response:
-            Dict containing true or false
-
-'''
 class Insert(View):
-    def post(self, request):
+    '''
+    <API Name>: Add New Item
+
+    Dependencies:
+    - firebase_admin
+    - base64
+    - datetime
+    - itemData model (custom)
+
+    Params:
+    - name (string): name of the item
+    - brand (string): brand of the item
+    - category (string): category of the item
+    - image (binary): binary representation of the image to be uploaded
+
+    Response:
+    - success (boolean): indicates whether the data was successfully inserted into the database or not
+    - error (string): contains the error message in case of failure
+    '''
+    def post(self, request, *args, **kwargs):
         try:
             self.insertData(request)
             response = {
@@ -47,18 +49,18 @@ class Insert(View):
     
     def filenameGenerator(self):
         '''
-        input: this function take no input
-        output: unique string which never collied with each other
+        Params: None
+        Output: unique string
         '''
         cdt = datetime.now()
         return (str(cdt.year) + str(cdt.month) + str(cdt.day) + str(cdt.hour) + str(cdt.minute) + str(cdt.second))
 
     def uploadImage(self, request):
         '''
-        input: 
-                request: Object of request
-        output: 
-                return PUBLIC URL of firebase cloud where image is stored
+        Params:
+        - request: Object of request
+
+        Output: The public URL of the uploaded image in Firebase Storage.
         '''
         bucket = storage.bucket()
         blob = bucket.blob(self.filenameGenerator())
@@ -69,11 +71,10 @@ class Insert(View):
     
     def insertData(self, request):
         '''
-        params: 
-                request : object of request
-                imgUrl: url of firebase storage where image is stored
-        output: 
-                boolean(True or False)
+        Params:
+        - request: Object of request
+
+        Output: None
         '''
         dataObj = itemData()
         dataObj.name = request.POST.get("name")
@@ -84,91 +85,118 @@ class Insert(View):
 
 # Class to handle delete operation
 class Delete(View):
-    def get(self, request, *args, **kwargs):
-        try:
-            Obj = itemData.objects.filter(id = request.GET.get('id'))
+    '''
+    <API Name>: Delete Item
 
-            if Obj == None:
-                raise Exception("Bad request! Invalid ID!")
+    Dependencies:
+    - firebase_admin
+    - itemData model (custom)
+
+    Request Method: GET
+
+    Request Parameters:
+    - id (integer): the id of the item to be deleted
+
+    Response:
+    - success (boolean): indicates whether the item was successfully deleted from the database or not
+    - error (string): contains the error message in case of failure
+    '''
+    def get(self, request, *args, **kwargs):
+        Obj = itemData.objects.filter(id = request.GET.get('id'))
+        response = self.deleteData(Obj)
+        return JsonResponse(response)
+    
+    def deleteData(Obj):
+        '''
+        Params:
+        - Obj: Object of itemData model to be deleted from the database.
+
+        Output:
+        - response: a dictionary containing two parameters:
+            - success (boolean): indicates whether the data was successfully deleted or not.
+            - error (string): contains the error message in case of failure.
+
+        '''
+        try:
+            if Obj.exists():
+                try:
+                    bucket = storage.bucket()
+                    public_url = Obj.values('image').get()['image'] 
+                    blob = bucket.blob(public_url.split('?')[0].split('/')[-1])
+                    if blob.exists():
+                        blob.delete()
+                    Obj.delete()
+                    response = {
+                        "success":True
+                    }
+                except Exception as e:
+                    return JsonResponse({"success": False, "error": str(e)})
             else:
-                bucket = storage.bucket()
-                blob = bucket.blob(Obj.image)
-                blob.delete
-                response = {
-                    "success":True
-                }
+                raise Exception("Bad request! Item with specified ID doesn't exist!!!")
+                
         except Exception as e:
             response = {
                 "success": False,
-                "error": e
+                "error": str(e)
             }
         
-        return JsonResponse(response)
+        return response
 
 
-# Class to handle update operation
-# class Update(View):
-#     def POST(self, request, *args, **kwargs):
-#         dataObj = itemData.objects.filter(id=request.GET.get('id'))
-#         try: 
-#             if id == None:
-#                 raise Exception("Bad request! Invalid ID!")
-#             else:
-#                 self.updateValues(dataObj, request)
-#                 response = {
-#                     "success": True
-#                 }
-
-#         except Exception:
-#             response = {
-#                 "success":False,
-#                 "error": Exception
-#             }
-        
-#         return JsonResponse(response)
-
-#     def updateValues(self, dataObj, request):
-#         '''
-#         params:
-#                 dataObj: Object of database
-#                 request: object of POST request
-#         output: 
-#                 Boolean
-#         '''
 # Class to handle insert operation 
 class Update(View):
+    '''
+    <API Name>: Update Item Data
+
+    Dependencies:
+    - Firebase Admin
+    - Firebase Cloud Storage
+    - itemData model from database
+
+    Params:
+    - id (int): ID of the item to be updated
+    - name (str, optional): Name of the item
+    - category (str, optional): Category of the item
+    - brand (str, optional): Brand of the item
+    - image (file, optional): Image of the item to be updated
+
+    Response:
+    - success (bool): True if the data is updated successfully, False otherwise
+    - error (str, optional): Error message if the data update fails
+    '''
     def post(self, request, *args, **kwargs):
-        dataObj = itemData.objects.filter(id=request.POST.get('id'))
+        dataObj = itemData.objects.get(id=request.POST.get('id'))
         try:
-            if dataObj == None:
-                raise Exception("Bad request! Invalid ID!!!")
-            else:
-                self.updateData(self, dataObj, request)
+            if dataObj != None:
+                self.updateData(dataObj, request)
                 response = {
                     "success": True
                 }
-        except Exception:
+
+            else:
+                raise Exception("Bad request! Item with specified ID doesn't exist!!!")
+        except Exception as e:
             response = {
                 "success":False,
-                "error": Exception 
+                "error": str(e) 
             }
 
         return JsonResponse(response)
     
     def filenameGenerator(self):
         '''
-        input: this function take no input
-        output: unique string which never collied with each other
+        Params: None
+        Output: unique string
         '''
         cdt = datetime.now()
         return (str(cdt.year) + str(cdt.month) + str(cdt.day) + str(cdt.hour) + str(cdt.minute) + str(cdt.second))
 
     def uploadImage(self, request):
         '''
-        input: 
-                request: Object of request
-        output: 
-                return PUBLIC URL of firebase cloud where image is stored
+        Params:
+        - request: Object of request
+
+        Output: The public URL of the uploaded image in Firebase Storage.
         '''
         bucket = storage.bucket()
         blob = bucket.blob(self.filenameGenerator())
@@ -178,29 +206,34 @@ class Update(View):
     
     def updateData(self, dataObj, request):
         '''
-        params: 
-                dataObj: Object of database
-                request : object of request
-        output: 
-                boolean(True or False)
+        Parameters:
+        - dataObj: Object of the model to be updated
+        - request: Object of the request containing the data to be updated
+
+        Output: None
         '''
-        dataObj.name = request.POST.get("name")
-        dataObj.category = request.POST.get("category")
-        dataObj.brand = request.POST.get("brand")
-        dataObj.image = self.uploadImage(request)
+        
+        if "name" in request.POST:
+            dataObj.name = request.POST.get("name")
+        if "category" in request.POST:
+            dataObj.category = request.POST.get("category")
+        if "brand" in request.POST:
+            dataObj.brand = request.POST.get("brand")
+        if 'image' in request.FILES: 
+            self.deleteImage(dataObj)
+            dataObj.image = self.uploadImage(request)
         dataObj.save()
-
-
-# Class to render Display Data Pag
-class displayData(View):
-    template_name = 'dataApi/displayData.html'
-
-    def get(self, request):
-        return render(request, self.template_name)
     
-# Class to render Insert Data Page
-class inserPage(View):
-    template_name = 'dataApi/Insert.html'
+    def deleteImage(self, dataObj):
+        '''
+        Parameters:
+        - dataObj: object of model which is going to be updated
 
-    def get(self, request):
-        return render(request, self.template_name)
+        Output:
+        - void
+        '''
+        bucket = storage.bucket()
+        public_url = dataObj.values('image').get()['image'] 
+        blob = bucket.blob(public_url.split('?')[0].split('/')[-1])
+        if blob.exists():
+            blob.delete()
