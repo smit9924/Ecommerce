@@ -6,6 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, storage
 from datetime import datetime
 import base64
+from django.middleware import csrf
 import json
 
 cred = credentials.Certificate('internshipEcommerceCredentials.json')
@@ -34,7 +35,16 @@ class Insert(View):
     - error (string): contains the error message in case of failure
     '''
     def post(self, request, *args, **kwargs):
+        requiredParam = ["name", "category", "brand"]
+        requiredFile = ["image"]
         try:
+            for param in requiredParam:
+                if param not in self.request.POST:
+                    raise ValueError("Insufficeient Parameters!")
+            for param in requiredFile:
+                if param not in self.request.FILES:
+                    raise ValueError("Insufficeient Files!")
+
             self.insertData(request)
             response = {
                 "success": True
@@ -42,7 +52,7 @@ class Insert(View):
         except Exception as e:
             response = {
                 "success":False,
-                "error": e 
+                "error": str(e) 
             }
 
         return JsonResponse(response)
@@ -66,7 +76,6 @@ class Insert(View):
         blob = bucket.blob(self.filenameGenerator())
         blob.upload_from_string(base64.b64decode(base64.b64encode(request.FILES.get("image").read())), content_type='image/png')
         blob.make_public()
-        print(blob.public_url)
         return blob.public_url
     
     def insertData(self, request):
@@ -237,3 +246,43 @@ class Update(View):
         blob = bucket.blob(public_url.split('?')[0].split('/')[-1])
         if blob.exists():
             blob.delete()
+
+class Filter(View):
+    '''
+    <API Name>: Item Filter API
+
+    Dependencies:
+    - itemData model from database
+    Params:
+    - category (optional): A string that specifies the category of the item.
+    - brand (optional): A string that specifies the brand of the item.
+
+    Response:
+    - response : containing list of items
+    '''
+    def post(self, request):
+        try:
+            category = request.POST.get("category")
+            brand = request.POST.get("brand")
+
+            if "category" in request.POST and "brand" in request.POST:
+                Data = itemData.objects.filter(category=category).values() or itemData.objects.filter(brand=brand).values()
+            elif "brand" in request.POST:
+                Data = itemData.objects.filter(brand=brand).values()
+            elif "category" in request.POST:
+                Data = itemData.objects.filter(category=category).values()
+            else:
+                Data = itemData.objects.all().values()
+
+            Data = json.dumps(list(Data)) 
+            return JsonResponse({"data":Data})
+        except Exception as e:
+            return JsonResponse({"Error": str(e)})
+
+
+# Class to get CSRF TOKEN to make request from thunder client
+class GetCSRFToken(View):
+    def get(self, request):
+        token = csrf.get_token(request)
+        response_data = {'csrf_token': token}
+        return JsonResponse(response_data)
