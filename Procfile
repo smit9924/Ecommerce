@@ -1,1 +1,1 @@
-web: gunicorn 'ecommerce.wsgi'
+web: whitenoise 'ecommerce.wsgi'
