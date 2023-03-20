@@ -252,9 +252,12 @@ class Filter(View):
                 Data = itemData.objects.filter(category=category).values()
             else:
                 Data = itemData.objects.all().values()
+            dataList = []
 
+            for dt in Data:
+                dataList.append(dt)
             Data = json.dumps(list(Data)) 
-            return JsonResponse({"data":Data}, status=200)
+            return JsonResponse({"data":dataList}, status=200)
         except Exception as e:
             return JsonResponse({"Error": str(e)}, status=400)
 
