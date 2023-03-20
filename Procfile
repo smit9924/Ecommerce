@@ -1,1 +1,1 @@
-web: whitenoise 'ecommerce.wsgi'
+web: waitress-serve --port=$PORT LibraryManagementApp.wsgi:application
