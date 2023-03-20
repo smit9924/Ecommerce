@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.views import View
 from dataApi.models import itemData
 from django.http import JsonResponse
@@ -13,20 +13,37 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 firebase_admin.initialize_app(cred, {'storageBucket': 'internshipecommerce-1f7ed.appspot.com'}) 
 
 # Class to handle insert operation 
+'''
+Name: Insert
+function: To insert data into database
+dependencies: 
+            firebase_admin
+            base64
+            datetime
+            itamData
+params: 
+        name
+        brand
+        category
+        image
+response:
+            Dict containing true or false
+
+'''
 class Insert(View):
     def post(self, request):
         try:
-            self.insertData(self, request)
+            self.insertData(request)
             response = {
                 "success": True
             }
-        except Exception:
+        except Exception as e:
             response = {
                 "success":False,
-                "error": Exception 
+                "error": e 
             }
 
-        return JsonResponse({"Success":True})
+        return JsonResponse(response)
     
     def filenameGenerator(self):
         '''
@@ -47,6 +64,7 @@ class Insert(View):
         blob = bucket.blob(self.filenameGenerator())
         blob.upload_from_string(base64.b64decode(base64.b64encode(request.FILES.get("image").read())), content_type='image/png')
         blob.make_public()
+        print(blob.public_url)
         return blob.public_url
     
     def insertData(self, request):
@@ -79,10 +97,10 @@ class Delete(View):
                 response = {
                     "success":True
                 }
-        except Exception:
+        except Exception as e:
             response = {
                 "success": False,
-                "error": Exception
+                "error": e
             }
         
         return JsonResponse(response)
