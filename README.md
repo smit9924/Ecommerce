@@ -1,7 +1,7 @@
 # Requirements
-python
-django
-firebase_admin
+python \n
+django \n
+firebase_admin \n
 google-cloud-storage
 
 # Installation
