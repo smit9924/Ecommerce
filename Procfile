@@ -1,1 +1,1 @@
-web: waitress-serve --port=$PORT LibraryManagementApp.wsgi:application
+web: waitress-serve --port=$PORT ecommerce.wsgi:application

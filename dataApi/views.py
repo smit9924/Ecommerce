@@ -6,6 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, storage
 from datetime import datetime
 import base64
+import json
 
 cred = credentials.Certificate('internshipEcommerceCredentials.json')
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
@@ -13,7 +14,7 @@ firebase_admin.initialize_app(cred, {'storageBucket': 'internshipecommerce-1f7ed
 
 # Class to handle insert operation 
 class Insert(View):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         try:
             self.insertData(self, request)
             response = {
@@ -25,7 +26,7 @@ class Insert(View):
                 "error": Exception 
             }
 
-        return JsonResponse(response)
+        return JsonResponse({"Success":True})
     
     def filenameGenerator(self):
         '''
@@ -48,7 +49,7 @@ class Insert(View):
         blob.make_public()
         return blob.public_url
     
-    def insertData(self, request, imgUrl):
+    def insertData(self, request):
         '''
         params: 
                 request : object of request
@@ -88,36 +89,36 @@ class Delete(View):
 
 
 # Class to handle update operation
-class Update(View):
-    def POST(self, request, *args, **kwargs):
-        dataObj = itemData.objects.filter(id=request.GET.get('id'))
-        try: 
-            if id == None:
-                raise Exception("Bad request! Invalid ID!")
-            else:
-                self.updateValues(dataObj, request)
-                response = {
-                    "success": True
-                }
+# class Update(View):
+#     def POST(self, request, *args, **kwargs):
+#         dataObj = itemData.objects.filter(id=request.GET.get('id'))
+#         try: 
+#             if id == None:
+#                 raise Exception("Bad request! Invalid ID!")
+#             else:
+#                 self.updateValues(dataObj, request)
+#                 response = {
+#                     "success": True
+#                 }
 
-        except Exception:
-            response = {
-                "success":False,
-                "error": Exception
-            }
+#         except Exception:
+#             response = {
+#                 "success":False,
+#                 "error": Exception
+#             }
         
-        return JsonResponse(response)
+#         return JsonResponse(response)
 
-    def updateValues(self, dataObj, request):
-        '''
-        params:
-                dataObj: Object of database
-                request: object of POST request
-        output: 
-                Boolean
-        '''
+#     def updateValues(self, dataObj, request):
+#         '''
+#         params:
+#                 dataObj: Object of database
+#                 request: object of POST request
+#         output: 
+#                 Boolean
+#         '''
 # Class to handle insert operation 
-class Insert(View):
+class Update(View):
     def post(self, request, *args, **kwargs):
         dataObj = itemData.objects.filter(id=request.POST.get('id'))
         try:
