@@ -46,16 +46,10 @@ class Insert(View):
                     raise ValueError("Insufficeient Files!")
 
             self.insertData(request)
-            response = {
-                "success": True
-            }
+            return JsonResponse({"success": True}, status=200)
+        
         except Exception as e:
-            response = {
-                "success":False,
-                "error": str(e) 
-            }
-
-        return JsonResponse(response)
+            return JsonResponse({"success":False, "error":str(e)}, status=400)
     
     def filenameGenerator(self):
         '''
@@ -135,23 +129,15 @@ class Delete(View):
                     if blob.exists():
                         blob.delete()
                     Obj.delete()
-                    response = {
-                        "success":True
-                    }
+                    return JsonResponse({"success":True}, status=200)
                 except Exception as e:
-                    return JsonResponse({"success": False, "error": str(e)})
+                    return JsonResponse({"success": False, "error": str(e)}, status=400)
             else:
                 raise Exception("Bad request! Item with specified ID doesn't exist!!!")
                 
         except Exception as e:
-            response = {
-                "success": False,
-                "error": str(e)
-            }
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
         
-        return response
-
-
 # Class to handle insert operation 
 class Update(View):
     '''
@@ -178,19 +164,12 @@ class Update(View):
         try:
             if dataObj != None:
                 self.updateData(dataObj, request)
-                response = {
-                    "success": True
-                }
-
+                return JsonResponse({"success": True}, status=200)
             else:
                 raise Exception("Bad request! Item with specified ID doesn't exist!!!")
+            
         except Exception as e:
-            response = {
-                "success":False,
-                "error": str(e) 
-            }
-
-        return JsonResponse(response)
+            return JsonResponse({"success":False, "error":str(e)}, status=400)
     
     def filenameGenerator(self):
         '''
@@ -275,9 +254,9 @@ class Filter(View):
                 Data = itemData.objects.all().values()
 
             Data = json.dumps(list(Data)) 
-            return JsonResponse({"data":Data})
+            return JsonResponse({"data":Data}, status=200)
         except Exception as e:
-            return JsonResponse({"Error": str(e)})
+            return JsonResponse({"Error": str(e)}, status=400)
 
 
 # Class to get CSRF TOKEN to make request from thunder client
