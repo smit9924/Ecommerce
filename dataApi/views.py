@@ -107,7 +107,7 @@ class Delete(View):
     def get(self, request, *args, **kwargs):
         Obj = itemData.objects.filter(id = request.GET.get('id'))
         response = self.deleteData(Obj)
-        return JsonResponse(response)
+        return JsonResponse(response, safe=False)
     
     def deleteData(self, Obj):
         """
@@ -129,16 +129,14 @@ class Delete(View):
                     if blob.exists():
                         blob.delete()
                     Obj.delete()
-                    import pdb
-                    pdb.set_trace()
-                    return JsonResponse({"success": True}, status=200)
+                    return {"success": True}
                 except Exception as e:
-                    return JsonResponse({"success": False, "error": str(e)}, safe=False, status=400)
+                    return {"success": False, "error": str(e)}
             else:
                 raise Exception("Bad request! Item with specified ID doesn't exist!!!")
                 
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, safe=False, status=400)
+            return {"success": False, "error": str(e)}
         
 # Class to handle insert operation 
 class Update(View):

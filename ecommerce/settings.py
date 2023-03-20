@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--&ys@c@$4s+9ev2q^u&-8x-gj&--)r3(n_1fcxjh6qz&^eq%(!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ['https://ecommerce.up.railway.app', 'https://www.thunderclient.com']
