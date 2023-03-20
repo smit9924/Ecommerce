@@ -106,7 +106,7 @@ class Delete(View):
         response = self.deleteData(Obj)
         return JsonResponse(response)
     
-    def deleteData(Obj):
+    def deleteData(self, Obj):
         '''
         Params:
         - Obj: Object of itemData model to be deleted from the database.
